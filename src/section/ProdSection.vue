@@ -11,6 +11,7 @@ onMounted(() => {
     .then(response => {
       // Map data API ke struktur yang diinginkan
       data.value = response.data.aaData.map(item => ({
+        id: item.id,
         title: item.name,
         tag: item.category || 'Elegan, Minimalis, Modern', // tambahkan tag default jika tidak ada
         price: item.price,
@@ -43,6 +44,7 @@ console.log(data);
     <div class="flex flex-row py-5 overflow-x-hidden mb-9 flex-nowrap">
       <div v-for="item in data" :key="item.id">
         <ProductComponent
+        :id="item.id"
         :title="item.title"
         :tag="item.tag"
         :price="item.price"

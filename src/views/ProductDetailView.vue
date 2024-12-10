@@ -1,29 +1,125 @@
+<script setup>
+import { useRoute } from 'vue-router';
+import { ref, onMounted, watch} from 'vue';
+import axios from 'axios';
+import ProductComponent from '@/components/ProductComponent.vue';
+import formatPrice from '@/utils/formatIDR';
+
+const route = useRoute();
+const product = ref(null); // Untuk menyimpan data produk tunggal
+const recentProducts = ref([]); // Untuk menyimpan data produk terbaru
+const count = ref(1);
+// Fungsi untuk memuat data produk
+const isLoading = ref(true);
+
+// Update the loading state when the product is fetched
+const fetchProduct = async (id) => {
+  if (!id) return;
+  isLoading.value = true;
+  try {
+    const response = await axios.get(`https://sistemtoko.com/public/demo/single/${id}`);
+    const item = response.data;
+    product.value = {
+      id: item.product_id,
+      name: item.product_name,
+      category: item.varian_keyword_value || 'Elegan, Minimalis, Modern',
+      price: item.product_price,
+      description: item.product_description || 'No description available.',
+      image: item.product_img ? `https://sistemtoko.com/img/user/demo/product/${item.product_img}` : '/default-image.jpg',
+      thumbnails: item.thumbnails || []
+    };
+  } catch (error) {
+    console.error('Error fetching product:', error);
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+
+// Fungsi untuk memuat produk terbaru
+const fetchRecentProducts = async () => {
+  try {
+    const response = await axios.get('https://sistemtoko.com/public/demo/product');
+    recentProducts.value = response.data.aaData.map(item => ({
+      id: item.id,
+      name: item.name,
+      price: item.plain_price,
+      tag: item.category || 'Elegan, Minimalis, Modern',
+      image: item.photo || '/default-image.jpg' // Gambar default jika tidak ada
+    }));
+    console.log(recentProducts.value);
+  } catch (error) {
+    console.error('Error fetching recent products:', error);
+  }
+};
+
+// Panggil fungsi saat komponen dimount
+onMounted(() => {
+  fetchProduct(route.params.id); // Jika ID tersedia, load produk
+  // fetchProduct(route.params.id);
+  fetchRecentProducts();
+});
+
+watch(() => route.params.id, (newId) => {
+  if (newId) {
+    fetchProduct(newId);
+    count.value = 1;
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
+  }
+});
+
+</script>
+
 <template>
-  <section class="px-12 py-5 bg-secondary">
+  <div>
+    <!-- Breadcrumb -->
+
+    <section class="px-12 py-5 bg-secondary">
+      <div class="flex flex-row items-center flex-nowrap">
         <div class="flex flex-row items-center flex-nowrap">
-          <div class="flex flex-row items-center flex-nowrap">
-            <a href="Home" class="font-light text-white pe-5">Home</a>
-            <img src="@/assets/logo/Arrow2.svg" alt="" width="6" class="" />
-          </div>
-          <div class="flex flex-row items-center m-2 flex-nowrap">
-            <a href="Product" class="font-light text-white pe-5">Product</a>
-            <img src="@/assets/logo/Arrow2.svg" alt="" width="6" />
-          </div>
-          <div
-            class="flex flex-row items-center h-10 m-2 flex-nowrap border-s-[1.5px] border-s-white"
-          >
-            <a href="Sofa" class="text-white ps-5">{{ $route.params.id }}</a>
-          </div>
+          <a href="Home" class="font-light text-white pe-5">Home</a>
+          <img src="@/assets/logo/Arrow2.svg" alt="" width="6" class="" />
         </div>
-      </section>
-      <section class="flex flex-row w-full px-12 py-10 flex-nowrap">
+        <div class="flex flex-row items-center m-2 flex-nowrap">
+          <RouterLink
+    :to='"/products"'
+    class="font-light text-white pe-5"
+  >
+  Product
+  </RouterLink>
+          <!-- <a href="Product" class="font-light text-white pe-5">Product</a> -->
+          <img src="@/assets/logo/Arrow2.svg" alt="" width="6" />
+        </div>
+        <div
+          class="flex flex-row items-center h-10 m-2 flex-nowrap border-s-[1.5px] border-s-white"
+        >
+        <RouterLink
+        :to="`/product/detail/${product?.id}`"
+        class="text-white ps-5">
+
+        {{ product?.name }}
+
+        </RouterLink>
+
+        </div>
+      </div>
+    </section>
+    <!-- Product Details -->
+
+    <section v-if="isLoading" class="flex items-center justify-center p-10">
+      <p>Loading product...</p>
+    </section>
+    <section v-else class="flex flex-row w-full px-12 py-10 flex-nowrap">
         <div class="flex flex-col w-1/2">
           <img
-            src="@/assets/image/spacejoy-c0JoR_-2x3E-unsplash 1.png"
+            :src="product.image"
             alt=""
             class="object-cover w-full h-[350px]"
           />
-          <div class="flex flex-row p-1 mt-2 flex-nowrap">
+            <!-- {{/*<div class="flex flex-row p-1 mt-2 flex-nowrap">
             <img
               src="@/assets/image/spacejoy-c0JoR_-2x3E-unsplash 1.png"
               alt=""
@@ -39,12 +135,12 @@
               alt=""
               class="object-cover w-1/3 h-[100px]"
             />
-          </div>
+          </div> */}} -->
         </div>
         <div class="w-1/2 ps-16">
-          <h3 class="font-playfair text-[42px] text-secondary">Sofa</h3>
+          <h3 class="font-playfair text-[42px] text-secondary">{{ product.name }}</h3>
           <p class="mb-4 text-2xl font-semibold text-secondary">
-            Rp. 1.250.000,00
+            {{ formatPrice(product.price) }}
           </p>
           <div class="flex flex-row items-start flex-nowrap">
             <div
@@ -59,9 +155,7 @@
             <p class="py-2 text-sm text-[#E5D097]">5 Customer Review</p>
           </div>
           <p class="text-justify w-[392px] text-thirdary mb-4">
-            This compact sofa fits in small areas and is perfect for family
-            parties and continuous TV viewing. It has a neat design and is easy
-            to lift when you want to refurbish, clean or move.
+            {{ product.description }}
           </p>
           <p class="mb-2 text-sm font-normal text-secondary">Size</p>
           <div class="flex flex-row mb-8 flex-nowrap">
@@ -84,7 +178,7 @@
           <div
             class="flex flex-row border-2 mb-8 flex-nowrap border-secondary w-[119px] py-2 px-3 items-center justify-between"
           >
-            <button
+            <button @click="count--"
               class="text-2xl text-secondary text-center w-[20px] h-[20px] pb-2"
             >
               -
@@ -93,10 +187,10 @@
               type="text"
               name=""
               id=""
-              value="1"
+              :value="count"
               class="w-10 text-2xl font-normal text-center text-secondary"
             />
-            <button
+            <button @click="count++"
               class="text-2xl text-secondary text-center w-[20px] h-[30px] pb-2"
             >
               +
@@ -145,182 +239,23 @@
             </div>
           </div>
         </div>
-      </section>
-      <section
-        class="mx-12 border-t-[1.25px] border-t-primary flex flex-col items-center justify-center"
-      >
-        <h3
-          class="mt-16 text-5xl text-center mb-14 font-playfair text-secondary"
-        >
-          Recent Product
-        </h3>
-        <div
-          class="grid w-full grid-cols-1 gap-6 md:px-20 sm:grid-cols-2 md:grid-cols-3"
-        >
-          <!-- Item -->
-          <div class="rounded-md shadow-md">
-            <img
-              src="@/assets/image/spacejoy-c0JoR_-2x3E-unsplash 1.png"
-              alt=""
-              class="object-cover w-full h-48 aspect-square rounded-t-md"
+    </section>
+    <!-- Recent Products -->
+    <section class="mx-12 border-t-[1.25px] border-t-primary py-10" v-if="recentProducts.length">
+      <h3 class="text-5xl text-center mb-14 font-playfair text-secondary">
+        Recent Products
+      </h3>
+      <div class="grid grid-cols-1 gap-6 md:px-20 sm:grid-cols-2 md:grid-cols-3">
+        <div v-for="item in recentProducts" :key="item.id">
+            <ProductComponent
+            :id="item.id"
+            :title="item.name"
+            :tag="item.tag"
+            :price="item.price"
+            :image="item.image"
             />
-            <div class="p-4">
-              <h5 class="text-xl font-semibold text-secondary">
-                Modern Minimalist Sofa
-              </h5>
-              <p class="text-xs font-normal text-thirdary">
-                Elegan, Minimalis, Modern
-              </p>
-              <p class="text-lg font-semibold text-secondary">
-                Rp. 12.000.000,00-
-              </p>
-            </div>
-          </div>
-          <!-- Duplicate the items for more products -->
-          <div class="rounded-md shadow-md">
-            <img
-              src="@/assets/image/spacejoy-c0JoR_-2x3E-unsplash 1.png"
-              alt=""
-              class="object-cover w-full h-48 aspect-square rounded-t-md"
-            />
-            <div class="p-4">
-              <h5 class="text-xl font-semibold text-secondary">
-                Modern Minimalist Sofa
-              </h5>
-              <p class="text-xs font-normal text-thirdary">
-                Elegan, Minimalis, Modern
-              </p>
-              <p class="text-lg font-semibold text-secondary">
-                Rp. 12.000.000,00-
-              </p>
-            </div>
-          </div>
-          <div class="rounded-md shadow-md">
-            <img
-              src="@/assets/image/spacejoy-c0JoR_-2x3E-unsplash 1.png"
-              alt=""
-              class="object-cover w-full h-48 aspect-square rounded-t-md"
-            />
-            <div class="p-4">
-              <h5 class="text-xl font-semibold text-secondary">
-                Modern Minimalist Sofa
-              </h5>
-              <p class="text-xs font-normal text-thirdary">
-                Elegan, Minimalis, Modern
-              </p>
-              <p class="text-lg font-semibold text-secondary">
-                Rp. 12.000.000,00-
-              </p>
-            </div>
-          </div>
-          <!-- Tambahkan lebih banyak produk sesuai kebutuhan -->
         </div>
-
-        <button
-          class="px-4 py-3 mt-16 text-xl font-extrabold text-white bg-primary font-playfair"
-        >
-          Show More
-        </button>
-      </section>
-      <section id="faq" class="flex flex-col items-center justify-center py-24">
-        <div class="mb-20">
-          <h4
-            class="mb-5 text-5xl font-medium text-center text-secondary font-playfair"
-          >
-            Frequently Asked Question
-          </h4>
-          <p class="font-normal text-center text-thirdary">
-            Find answers to common questions about furniture care, delivery, and
-            return policies
-          </p>
-        </div>
-        <div class="flex flex-col w-full mb-20 px-72">
-          <div
-            class="flex flex-col py-4 border-t-[1px] border-b-[1px] border-t-thirdary border-b-thirdary"
-          >
-            <!--  Content Items -->
-            <div class="flex flex-row items-center justify-between mb-3">
-              <h6 class="text-lg font-bold text-secondary">
-                How do i care for my furniture
-              </h6>
-              <img
-                src="@/assets/logo/Vector.svg"
-                alt=""
-                class="px-5 rotate-90 cursor-pointer"
-              />
-            </div>
-            <p class="text-base font-normal text-thirdary">
-              Proper care for your furniture includes regular cleaning and
-              avoiding direct sunlight.
-            </p>
-          </div>
-          <div class="flex flex-col py-4 border-b-[1px] border-b-thirdary">
-            <!--  Content Items -->
-            <div class="flex flex-row items-center justify-between mb-3">
-              <h6 class="text-lg font-bold text-secondary">
-                What is your delivery process?
-              </h6>
-              <img
-                src="@/assets/logo/Vector.svg"
-                alt=""
-                class="px-5 rotate-90 cursor-pointer"
-              />
-            </div>
-            <p class="text-base font-normal text-thirdary">
-              We offer fast and reliable delivery services to ensure your
-              furniture arrives safely.
-            </p>
-          </div>
-          <div class="flex flex-col py-4 border-b-[1px] border-b-thirdary">
-            <!--  Content Items -->
-            <div class="flex flex-row items-center justify-between mb-3">
-              <h6 class="text-lg font-bold text-secondary">
-                What is your returns policy?
-              </h6>
-              <img
-                src="@/assets/logo/Vector.svg"
-                alt=""
-                class="px-5 rotate-90 cursor-pointer"
-              />
-            </div>
-            <p class="text-base font-normal text-thirdary">
-              If you're not satisfied with your purchase, we accept returns
-              within 30 days.
-            </p>
-          </div>
-          <div class="flex flex-col py-4 border-b-[1px] border-b-thirdary">
-            <!--  Content Items -->
-            <div class="flex flex-row items-center justify-between mb-3">
-              <h6 class="text-lg font-bold text-secondary">
-                Can I customize my furniture?
-              </h6>
-              <img
-                src="@/assets/logo/Vector.svg"
-                alt=""
-                class="px-5 rotate-90 cursor-pointer"
-              />
-            </div>
-            <p class="text-base font-normal text-thirdary">
-              Yes, we offer customization options for select furniture pieces.
-            </p>
-          </div>
-          <div class="flex flex-col py-4 border-b-[1px] border-b-thirdary">
-            <!--  Content Items -->
-            <div class="flex flex-row items-center justify-between mb-3">
-              <h6 class="text-lg font-bold text-secondary">
-                Do you offer warranty?
-              </h6>
-              <img
-                src="@/assets/logo/Vector.svg"
-                alt=""
-                class="px-5 rotate-90 cursor-pointer"
-              />
-            </div>
-            <p class="text-base font-normal text-thirdary">
-              Yes, we provide a warranty for our furniture to ensure customer
-              satisfaction.
-            </p>
-          </div>
-        </div>
-      </section>
+      </div>
+    </section>
+  </div>
 </template>

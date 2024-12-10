@@ -1,3 +1,33 @@
+<script setup>
+import axios from 'axios';
+import { ref, onMounted } from 'vue';
+import  ProductComponent from '@/components/ProductComponent.vue';
+
+const data = ref([]);
+const total = ref(0);
+onMounted(() => {
+  axios
+    .get('https://sistemtoko.com/public/demo/product')
+    .then(response => {
+      // Map data API ke struktur yang diinginkan
+      total.value = response.data.total;
+      data.value = response.data.aaData.map(item => ({
+        id: item.id,
+        title: item.name,
+        tag: item.category || 'Elegan, Minimalis, Modern', // tambahkan tag default jika tidak ada
+        price: item.price,
+        image: item.photo,// fallback jika gambar tidak ada
+
+      }));
+      console.log(response.data.aaData);
+    })
+    .catch(error => {
+      console.error("Error fetching data: ", error);
+    });
+});
+console.log(data);
+</script>
+
 <template>
   <!-- Hero Section -->
   <section id="header" class="w-full h-[70vh] relative">
@@ -47,12 +77,12 @@
             <p class="text-xl text-secondary">Filter</p>
           </div>
           <div class="px-5 border-s-2 border-s-secondary h-[40px]">
-            <p class="py-2 text-secondary">Showing 1-12 of 34 results</p>
+            <p class="py-2 text-secondary">Showing 1-{{ data.length }} of {{ total }} results</p>
           </div>
         </div>
         <div class="flex flex-row items-center pe-20">
           <p class="text-base text-secondary me-4">Show</p>
-          <p class="text-base text-thirdary me-6">16</p>
+          <p class="text-base text-thirdary me-6">{{ total }}</p>
           <p class="text-base text-secondary me-4">Sort by</p>
           <p class="text-base text-thirdary me-6">Default</p>
         </div>
@@ -63,226 +93,15 @@
         <div
           class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
         >
-          <!-- Item -->
-          <div class="rounded-md shadow-md">
-            <img
-              src="@/assets/image/spacejoy-c0JoR_-2x3E-unsplash 1.png"
-              alt=""
-              class="object-cover w-full h-48 aspect-square rounded-t-md"
-            />
-            <div class="p-4">
-              <h5 class="text-xl font-semibold text-secondary">
-                Modern Minimalist Sofa
-              </h5>
-              <p class="text-xs font-normal text-thirdary">
-                Elegan, Minimalis, Modern
-              </p>
-              <p class="text-lg font-semibold text-secondary">
-                Rp. 12.000.000,00-
-              </p>
-            </div>
-          </div>
-
-          <!-- Duplicate the items for more products -->
-          <div class="rounded-md shadow-md">
-            <img
-              src="@/assets/image/spacejoy-c0JoR_-2x3E-unsplash 1.png"
-              alt=""
-              class="object-cover w-full h-48 aspect-square rounded-t-md"
-            />
-            <div class="p-4">
-              <h5 class="text-xl font-semibold text-secondary">
-                Modern Minimalist Sofa
-              </h5>
-              <p class="text-xs font-normal text-thirdary">
-                Elegan, Minimalis, Modern
-              </p>
-              <p class="text-lg font-semibold text-secondary">
-                Rp. 12.000.000,00-
-              </p>
-            </div>
-          </div>
-          <div class="rounded-md shadow-md">
-            <img
-              src="@/assets/image/spacejoy-c0JoR_-2x3E-unsplash 1.png"
-              alt=""
-              class="object-cover w-full h-48 aspect-square rounded-t-md"
-            />
-            <div class="p-4">
-              <h5 class="text-xl font-semibold text-secondary">
-                Modern Minimalist Sofa
-              </h5>
-              <p class="text-xs font-normal text-thirdary">
-                Elegan, Minimalis, Modern
-              </p>
-              <p class="text-lg font-semibold text-secondary">
-                Rp. 12.000.000,00-
-              </p>
-            </div>
-          </div>
-          <div class="rounded-md shadow-md">
-            <img
-              src="@/assets/image/spacejoy-c0JoR_-2x3E-unsplash 1.png"
-              alt=""
-              class="object-cover w-full h-48 aspect-square rounded-t-md"
-            />
-            <div class="p-4">
-              <h5 class="text-xl font-semibold text-secondary">
-                Modern Minimalist Sofa
-              </h5>
-              <p class="text-xs font-normal text-thirdary">
-                Elegan, Minimalis, Modern
-              </p>
-              <p class="text-lg font-semibold text-secondary">
-                Rp. 12.000.000,00-
-              </p>
-            </div>
-          </div>
-          <div class="rounded-md shadow-md">
-            <img
-              src="@/assets/image/spacejoy-c0JoR_-2x3E-unsplash 1.png"
-              alt=""
-              class="object-cover w-full h-48 aspect-square rounded-t-md"
-            />
-            <div class="p-4">
-              <h5 class="text-xl font-semibold text-secondary">
-                Modern Minimalist Sofa
-              </h5>
-              <p class="text-xs font-normal text-thirdary">
-                Elegan, Minimalis, Modern
-              </p>
-              <p class="text-lg font-semibold text-secondary">
-                Rp. 12.000.000,00-
-              </p>
-            </div>
-          </div>
-          <div class="rounded-md shadow-md">
-            <img
-              src="@/assets/image/spacejoy-c0JoR_-2x3E-unsplash 1.png"
-              alt=""
-              class="object-cover w-full h-48 aspect-square rounded-t-md"
-            />
-            <div class="p-4">
-              <h5 class="text-xl font-semibold text-secondary">
-                Modern Minimalist Sofa
-              </h5>
-              <p class="text-xs font-normal text-thirdary">
-                Elegan, Minimalis, Modern
-              </p>
-              <p class="text-lg font-semibold text-secondary">
-                Rp. 12.000.000,00-
-              </p>
-            </div>
-          </div>
-          <div class="rounded-md shadow-md">
-            <img
-              src="@/assets/image/spacejoy-c0JoR_-2x3E-unsplash 1.png"
-              alt=""
-              class="object-cover w-full h-48 aspect-square rounded-t-md"
-            />
-            <div class="p-4">
-              <h5 class="text-xl font-semibold text-secondary">
-                Modern Minimalist Sofa
-              </h5>
-              <p class="text-xs font-normal text-thirdary">
-                Elegan, Minimalis, Modern
-              </p>
-              <p class="text-lg font-semibold text-secondary">
-                Rp. 12.000.000,00-
-              </p>
-            </div>
-          </div>
-          <div class="rounded-md shadow-md">
-            <img
-              src="@/assets/image/spacejoy-c0JoR_-2x3E-unsplash 1.png"
-              alt=""
-              class="object-cover w-full h-48 aspect-square rounded-t-md"
-            />
-            <div class="p-4">
-              <h5 class="text-xl font-semibold text-secondary">
-                Modern Minimalist Sofa
-              </h5>
-              <p class="text-xs font-normal text-thirdary">
-                Elegan, Minimalis, Modern
-              </p>
-              <p class="text-lg font-semibold text-secondary">
-                Rp. 12.000.000,00-
-              </p>
-            </div>
-          </div>
-          <div class="rounded-md shadow-md">
-            <img
-              src="@/assets/image/spacejoy-c0JoR_-2x3E-unsplash 1.png"
-              alt=""
-              class="object-cover w-full h-48 aspect-square rounded-t-md"
-            />
-            <div class="p-4">
-              <h5 class="text-xl font-semibold text-secondary">
-                Modern Minimalist Sofa
-              </h5>
-              <p class="text-xs font-normal text-thirdary">
-                Elegan, Minimalis, Modern
-              </p>
-              <p class="text-lg font-semibold text-secondary">
-                Rp. 12.000.000,00-
-              </p>
-            </div>
-          </div>
-          <div class="rounded-md shadow-md">
-            <img
-              src="@/assets/image/spacejoy-c0JoR_-2x3E-unsplash 1.png"
-              alt=""
-              class="object-cover w-full h-48 aspect-square rounded-t-md"
-            />
-            <div class="p-4">
-              <h5 class="text-xl font-semibold text-secondary">
-                Modern Minimalist Sofa
-              </h5>
-              <p class="text-xs font-normal text-thirdary">
-                Elegan, Minimalis, Modern
-              </p>
-              <p class="text-lg font-semibold text-secondary">
-                Rp. 12.000.000,00-
-              </p>
-            </div>
-          </div>
-          <div class="rounded-md shadow-md">
-            <img
-              src="@/assets/image/spacejoy-c0JoR_-2x3E-unsplash 1.png"
-              alt=""
-              class="object-cover w-full h-48 aspect-square rounded-t-md"
-            />
-            <div class="p-4">
-              <h5 class="text-xl font-semibold text-secondary">
-                Modern Minimalist Sofa
-              </h5>
-              <p class="text-xs font-normal text-thirdary">
-                Elegan, Minimalis, Modern
-              </p>
-              <p class="text-lg font-semibold text-secondary">
-                Rp. 12.000.000,00-
-              </p>
-            </div>
-          </div>
-          <div class="rounded-md shadow-md">
-            <img
-              src="@/assets/image/spacejoy-c0JoR_-2x3E-unsplash 1.png"
-              alt=""
-              class="object-cover w-full h-48 aspect-square rounded-t-md"
-            />
-            <div class="p-4">
-              <h5 class="text-xl font-semibold text-secondary">
-                Modern Minimalist Sofa
-              </h5>
-              <p class="text-xs font-normal text-thirdary">
-                Elegan, Minimalis, Modern
-              </p>
-              <p class="text-lg font-semibold text-secondary">
-                Rp. 12.000.000,00-
-              </p>
-            </div>
-          </div>
-
+        <div v-for="item in data" :key="item.id">
+          <ProductComponent
+            :id="item.id"
+            :title="item.title"
+            :tag="item.tag"
+            :price="item.price"
+            :image="item.image"
+          />
+        </div>
           <!-- Tambahkan lebih banyak produk sesuai kebutuhan -->
         </div>
 
